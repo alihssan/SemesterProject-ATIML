@@ -1,0 +1,56 @@
+{
+  "tfidf": {
+    "svm": {
+      "test_accuracy": 0.5425,
+      "train_accuracy": 0.5375
+    },
+    "neural_network": {
+      "test_accuracy": 0.6275,
+      "train_accuracy": 0.646875
+    },
+    "random_forest": {
+      "test_accuracy": 0.6925,
+      "train_accuracy": 0.69375
+    },
+    "xgboost": {
+      "test_accuracy": 0.6625,
+      "train_accuracy": 0.665625
+    }
+  },
+  "doc2vec": {
+    "svm": {
+      "test_accuracy": 0.625,
+      "train_accuracy": 0.6125
+    },
+    "neural_network": {
+      "test_accuracy": 0.62,
+      "train_accuracy": 0.609375
+    },
+    "random_forest": {
+      "test_accuracy": 0.6175,
+      "train_accuracy": 0.6375
+    },
+    "xgboost": {
+      "test_accuracy": 0.6075,
+      "train_accuracy": 0.615625
+    }
+  },
+  "sentence_bert": {
+    "svm": {
+      "test_accuracy": 0.7875,
+      "train_accuracy": 0.75625
+    },
+    "neural_network": {
+      "test_accuracy": 0.745,
+      "train_accuracy": 0.728125
+    },
+    "random_forest": {
+      "test_accuracy": 0.72,
+      "train_accuracy": 0.678125
+    },
+    "xgboost": {
+      "test_accuracy": 0.725,
+      "train_accuracy": 0.684375
+    }
+  }
+}

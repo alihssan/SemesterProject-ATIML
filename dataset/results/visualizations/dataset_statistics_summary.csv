@@ -1,0 +1,13 @@
+Metric,20 Newsgroups,AG News
+Total Classes,20,4
+Training Samples,13568,91872
+Validation Samples,1508,10208
+Test Samples,3770,25520
+Total Samples,18846,127600
+Avg Words (Train),181.6,37.9
+Avg Words (Test),181.6,37.8
+Avg Chars (Train),1174.5,236.4
+Avg Chars (Test),1164.8,236.0
+Min Words (Train),0,8
+Max Words (Train),11765,177
+Std Words (Train),503.6,10.1

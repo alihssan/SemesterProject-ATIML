@@ -1,0 +1,13 @@
+Combination,Classifier,Vectorization,Accuracy,F1-Score
+Svm - Tfidf,Svm,Tfidf,0.5425,0.5420061626271817
+Neural Network - Tfidf,Neural Network,Tfidf,0.6275,0.6277556223407847
+Random Forest - Tfidf,Random Forest,Tfidf,0.6925,0.6922535656366655
+Xgboost - Tfidf,Xgboost,Tfidf,0.6625,0.6638030440550754
+Svm - Doc2Vec,Svm,Doc2Vec,0.6125,0.6131122285170735
+Neural Network - Doc2Vec,Neural Network,Doc2Vec,0.6125,0.6133188764347166
+Random Forest - Doc2Vec,Random Forest,Doc2Vec,0.64,0.6384530572506631
+Xgboost - Doc2Vec,Xgboost,Doc2Vec,0.6475,0.6446758861877853
+Svm - Sentence Bert,Svm,Sentence Bert,0.7875,0.787654150610744
+Neural Network - Sentence Bert,Neural Network,Sentence Bert,0.745,0.7445282987604065
+Random Forest - Sentence Bert,Random Forest,Sentence Bert,0.72,0.7194708501152931
+Xgboost - Sentence Bert,Xgboost,Sentence Bert,0.725,0.7248270552552053

@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  atiml-project:
+    build: .
+    container_name: atiml-project
+    volumes:
+      # Mount results directory for persistent storage
+      - ./results:/app/results
+      # Mount dataset directory for data persistence
+      - ./dataset:/app/dataset
+      # Mount config directory for configuration persistence
+      - ./config:/app/config
+      # Mount notebooks directory for Jupyter notebooks
+      - ./notebook:/app/notebook
+      # Mount poster directory
+      - ./poster:/app/poster
+      # Optional: mount the entire project for development
+      - .:/app
+      # Exclude certain directories from mounting to avoid conflicts
+      - /app/venv
+      - /app/__pycache__
+      - /app/.git
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    ports:
+      - "8000:8000"  # If you need to expose any web interface
+    working_dir: /app
+    command: python run_both_pipelines.py
+    # Restart policy for development
+    restart: unless-stopped
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G 
