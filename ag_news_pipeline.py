@@ -27,7 +27,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from dataset.ag_news_dataset import AGNewsDataset
 from config.config import load_config
-from classifiers.classifier import UnifiedClassifier, train_test_classifier
+from train.classifier import UnifiedClassifier, train_test_classifier
 
 # Configure logging
 logging.basicConfig(

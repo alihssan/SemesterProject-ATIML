@@ -27,18 +27,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p results/pipeline_$(date +%Y%m%d_%H%M%S) \
-    results/data_quality \
-    results/visualizations \
-    dataset/explore/results/data_quality
-
-# Set permissions
-RUN chmod +x run_pipeline.py \
-    && chmod +x ag_news_pipeline.py \
-    && chmod +x run_both_pipelines.py
+RUN mkdir -p results
 
 # Expose port (if needed for any web interface)
 EXPOSE 8000
 
-# Set the default command to run both pipelines
-CMD ["python", "run_both_pipelines.py"]
+# Set the default command to run bash
+CMD ["/bin/bash"]

@@ -24,7 +24,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from dataset.newsgroups_dataset import NewsgroupsDataset
 from dataset.ag_news_dataset import AGNewsDataset
-from classifiers.classifier import Classifier
+from train.classifier import Classifier
 from vectorization.tf_idf import TFIDFVectorizer
 
 # Configure logging
@@ -141,18 +141,18 @@ class XAIAnalysisPipeline:
         
         try:
             if self.dataset_type == 'newsgroups':
-                self.dataset = NewsgroupsDataset()
-                self.dataset.load_data()
-                
-                # Split data
-                from sklearn.model_selection import train_test_split
-                self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-                    self.dataset.texts,
-                    self.dataset.labels,
-                    test_size=0.2,
-                    random_state=self.random_state,
-                    stratify=self.dataset.labels
-                )
+            self.dataset = NewsgroupsDataset()
+            self.dataset.load_data()
+            
+            # Split data
+            from sklearn.model_selection import train_test_split
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+                self.dataset.texts,
+                self.dataset.labels,
+                test_size=0.2,
+                random_state=self.random_state,
+                stratify=self.dataset.labels
+            )
                 
                 # Get class names
                 self.class_names = self.dataset.class_names
@@ -306,7 +306,7 @@ class XAIAnalysisPipeline:
 
             LIME Analysis Results:
             {lime_info}
-
+            
             Provide an explanation that:
             1. Incorporates the LIME insights about important features
             2. Explains whether the LIME analysis supports this classification

@@ -1,9 +1,0 @@
-BOTH PIPELINES EXECUTION SUMMARY
-==================================================
-Timestamp: 20250620_100133
-Random State: 42
-
-✅ MAIN_PIPELINE: results/pipeline_20250620_100141
-❌ AG_NEWS_PIPELINE: Failed
-
-Successful Pipelines: 1/2

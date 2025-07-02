@@ -28,7 +28,7 @@ from config import get_config_for_mode, DATASET_CONFIG, TFIDF_CONFIG, DOC2VEC_CO
 from vectorization.tf_idf import create_tfidf_vectors
 from vectorization.doc2vec import create_doc2vec_vectors
 from vectorization.llm_summarisation import create_summaries
-from classifiers.classifier import UnifiedClassifier, train_test_classifier
+from train.classifier import UnifiedClassifier, train_test_classifier
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -409,14 +409,14 @@ class NewsgroupsPipeline:
     def generate_gemini_reasoning(self) -> Dict[str, Any]:
         """
         Generate Gemini reasoning for predictions.
-        
+            
         Returns:
             Dictionary with Gemini reasoning
         """
         logger.info("Generating Gemini reasoning for predictions...")
         
         # Select random samples for analysis
-        sample_indices = np.random.choice(len(self.X_test), min(5, len(self.X_test)), replace=False)
+            sample_indices = np.random.choice(len(self.X_test), min(5, len(self.X_test)), replace=False)
         
         gemini_analysis = {}
         
@@ -435,9 +435,9 @@ class NewsgroupsPipeline:
             prediction_name = self.raw_data['target_name'].iloc[prediction]
             
             # Get prediction confidence
-            try:
-                proba = rf_classifier.predict_proba(tfidf_vector)[0]
-                confidence = proba[prediction]
+                try:
+                    proba = rf_classifier.predict_proba(tfidf_vector)[0]
+                    confidence = proba[prediction]
             except:
                 confidence = 0.0
             
