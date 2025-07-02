@@ -27,7 +27,9 @@ services:
     ports:
       - "8000:8000"  # If you need to expose any web interface
     working_dir: /app
-    command: python run_both_pipelines.py
+    command: python train/doc2vec.py
+    stdin_open: true
+    tty: true
     # Restart policy for development
     restart: unless-stopped
     # Resource limits

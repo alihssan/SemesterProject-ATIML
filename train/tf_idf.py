@@ -439,208 +439,105 @@ if __name__ == "__main__":
     logger.info("✅ Import paths configured")
     
     from dataset.newsgroups_dataset import NewsgroupsDataset
-    from vectorization.tf_idf import prepare_tfidf_from_newsgroups
+    from sklearn.feature_extraction.text import TfidfVectorizer
     logger.info("✅ Required modules imported successfully")
     
-    # Dataset initialization with working settings
-    logger.info("🔧 Initializing NewsgroupsDataset with working settings...")
-    dataset_proc = NewsgroupsDataset(
+    # Dataset initialization with NO preprocessing (raw text only)
+    logger.info("🔧 Initializing NewsgroupsDataset with NO preprocessing (raw text)...")
+    dataset = NewsgroupsDataset(
         remove_headers=True, 
         remove_footers=True, 
         remove_quotes=True, 
-        preprocess=True,
+        preprocess=False,  # No tokenization/preprocessing
         remove_empty=True,
-        clip_long_docs=True,
-        clip_percentile=95
+        clip_long_docs=False  # No clipping
     )
     logger.info("✅ NewsgroupsDataset initialized successfully")
     
-    # Get DataFrame with tokenized text (fast)
-    logger.info("\n🔄 STEP 2: Preparing DataFrame...")
-    df_proc = dataset_proc.create_dataframe(split='train', raw=False)
+    # Get DataFrame with raw text (training only)
+    logger.info("\n🔄 STEP 2: Preparing DataFrame with raw text...")
+    df_raw = dataset.create_dataframe(split='train', raw=True)
     
-    logger.info(f"✅ DataFrame created. Shape: {df_proc.shape}")
+    logger.info(f"✅ DataFrame created. Shape: {df_raw.shape}")
     
-    # === Generate TF-IDF Vectors ===
-    logger.info("\n🔤 STEP 3: Generating TF-IDF vectors...")
+    # === Generate TF-IDF Vectors from Raw Text ===
+    logger.info("\n🔤 STEP 3: Generating TF-IDF vectors from raw text...")
     
-    # Create results directory for visualizations
+    # Create results directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    vis_results_dir = f"results/tfidf_visualizations_{timestamp}"
-    os.makedirs(vis_results_dir, exist_ok=True)
-    logger.info(f"Created visualization results directory: {vis_results_dir}")
+    results_dir = f"results/tfidf_raw_{timestamp}"
+    os.makedirs(results_dir, exist_ok=True)
+    logger.info(f"Created results directory: {results_dir}")
     
-    # Define visualization settings (save to results folder)
-    visualization_params = {
-        "visualize": True, 
-        "method": "pca", 
-        "max_features": 2000,
-        "ngram_range": (1, 1),
-        "save_dir": vis_results_dir
-    }
-    
-    logger.info(f"Visualization parameters: {visualization_params}")
-    
-    # === Raw Dataset ===
-    logger.info("\nRaw Text TF-IDF Embeddings")
-    df_raw = dataset_proc.create_dataframe(split='train', raw=True)
-    labels_raw = df_raw['class_name'].reset_index(drop=True)
-    
-    # Generate raw TF-IDF vectors using the working settings
-    from vectorization.tf_idf import prepare_tfidf_from_newsgroups
-    
-    X_raw = prepare_tfidf_from_newsgroups(
-        dataset=dataset_proc,
-        split='train',
-        use_preprocessed=False,
-        return_feature_names=False,
-        visualize=True,
-        method='pca',
-        ngram_label="Unigrams",
+    # Create TF-IDF vectorizer
+    tfidf_vectorizer = TfidfVectorizer(
         max_features=1000,
-        ngram_range=(1, 1),
         stop_words='english',
+        ngram_range=(1, 2),
         min_df=2,
-        max_df=0.95,
-        save_dir=vis_results_dir
+        max_df=0.95
     )
     
-    tfidf_raw_vectors_train = pd.DataFrame({
-        "tfidf_vector": list(X_raw),
-        "class_name": labels_raw
+    # Fit and transform the raw texts
+    raw_texts = df_raw['text'].tolist()
+    X_tfidf = tfidf_vectorizer.fit_transform(raw_texts)
+    
+    logger.info(f"✅ TF-IDF vectors created. Shape: {X_tfidf.shape}")
+    
+    # Create DataFrame with TF-IDF vectors and labels
+    tfidf_df = pd.DataFrame({
+        "tfidf_vector": list(X_tfidf.toarray()),
+        "class_name": df_raw['class_name']
     })
     
-    logger.info(f"Raw TF-IDF vector shape: {X_raw.shape}")
+    # === Train Classifiers ===
+    logger.info("\n🎯 STEP 4: Training classifiers...")
     
-    # === Preprocessed Dataset ===
-    logger.info("\nPreprocessed Text TF-IDF Embeddings")
-    labels_proc = df_proc['class_name'].reset_index(drop=True)
+    # Prepare data for training
+    dataframe = tfidf_df[["class_name"]]
+    vectors_array = X_tfidf.toarray()
     
-    X_proc = prepare_tfidf_from_newsgroups(
-        dataset=dataset_proc,
-        split='train',
-        use_preprocessed=True,
-        return_feature_names=False,
-        visualize=True,
-        method='pca',
-        ngram_label="Unigrams",
-        max_features=1000,
-        ngram_range=(1, 1),
-        stop_words='english',
-        min_df=2,
-        max_df=0.95,
-        save_dir=vis_results_dir
+    # Train classifiers (this function handles the train/test split internally)
+    results = train_tfidf_classifiers(dataframe, vectors_array, test_size=0.2, random_state=42)
+    
+    # === Save TF-IDF Data for Later Use ===
+    logger.info("\n💾 STEP 5: Saving TF-IDF data...")
+    
+    # Save the raw text data with TF-IDF vectors
+    tfidf_data_df = pd.DataFrame({
+        'original_text': raw_texts,
+        'tfidf_vector': list(X_tfidf.toarray()),
+        'label': df_raw['label'],
+        'class_name': df_raw['class_name']
+    })
+    
+    # Split into train/test for consistency
+    from sklearn.model_selection import train_test_split
+    
+    train_df, test_df = train_test_split(
+        tfidf_data_df, 
+        test_size=0.2, 
+        random_state=42, 
+        stratify=tfidf_data_df['label']
     )
     
-    tfidf_proc_vectors_train = pd.DataFrame({
-        "tfidf_vector": list(X_proc),
-        "class_name": labels_proc
-    })
-        
-    logger.info(f"Processed TF-IDF vector shape: {X_proc.shape}")
+    # Save to CSV files
+    full_csv_filename = f"{results_dir}/tfidf_full_{timestamp}.csv"
+    train_csv_filename = f"{results_dir}/tfidf_train_{timestamp}.csv"
+    test_csv_filename = f"{results_dir}/tfidf_test_{timestamp}.csv"
     
-    # === Compare Raw vs Processed Performance ===
-    logger.info("\nSTEP 4: Comparing Raw vs Processed TF-IDF Performance...")
+    tfidf_data_df.to_csv(full_csv_filename, index=False)
+    train_df.to_csv(train_csv_filename, index=False)
+    test_df.to_csv(test_csv_filename, index=False)
     
-    # Train classifiers on both raw and processed vectors
-    logger.info("Training classifiers on Raw TF-IDF vectors...")
-    dataframe_raw = tfidf_raw_vectors_train[["class_name"]]
-    results_raw = train_tfidf_classifiers(dataframe_raw, X_raw)
-    
-    logger.info("Training classifiers on Processed TF-IDF vectors...")
-    dataframe_proc = tfidf_proc_vectors_train[["class_name"]]
-    results_proc = train_tfidf_classifiers(dataframe_proc, X_proc)
-    
-    # === Compare Results ===
-    logger.info("\nSTEP 5: Comparing Raw vs Processed Results...")
-    
-    # Create comparison summary
-    comparison_data = []
-    for model_name in results_raw.keys():
-        raw_f1 = results_raw[model_name]['f1_macro']
-        proc_f1 = results_proc[model_name]['f1_macro']
-        improvement = proc_f1 - raw_f1
-        
-        comparison_data.append({
-            'Model': model_name,
-            'Raw F1-Score': raw_f1,
-            'Processed F1-Score': proc_f1,
-            'Improvement': improvement,
-            'Better': 'Processed' if improvement > 0 else 'Raw'
-        })
-    
-    comparison_df = pd.DataFrame(comparison_data)
-    comparison_df.to_csv(f"{vis_results_dir}/raw_vs_processed_comparison.csv", index=False)
-    
-    logger.info("Raw vs Processed Comparison:")
-    logger.info(comparison_df.to_string(index=False))
-    
-    # Plot comparison
-    plt.figure(figsize=(12, 8))
-    x = np.arange(len(comparison_data))
-    width = 0.35
-    
-    raw_scores = [row['Raw F1-Score'] for row in comparison_data]
-    proc_scores = [row['Processed F1-Score'] for row in comparison_data]
-    
-    plt.bar(x - width/2, raw_scores, width, label='Raw TF-IDF', color='#FF6B6B', alpha=0.8)
-    plt.bar(x + width/2, proc_scores, width, label='Processed TF-IDF', color='#4ECDC4', alpha=0.8)
-    
-    plt.xlabel('Models')
-    plt.ylabel('F1-Score (Macro)')
-    plt.title('Raw vs Processed TF-IDF Performance Comparison')
-    plt.xticks(x, [row['Model'] for row in comparison_data], rotation=45)
-    plt.legend()
-    plt.ylim(0, 1)
-    
-    # Add value labels on bars
-    for i, (raw_score, proc_score) in enumerate(zip(raw_scores, proc_scores)):
-        plt.text(i - width/2, raw_score + 0.01, f'{raw_score:.3f}', ha='center', va='bottom', fontweight='bold')
-        plt.text(i + width/2, proc_score + 0.01, f'{proc_score:.3f}', ha='center', va='bottom', fontweight='bold')
-    
-    plt.tight_layout()
-    plt.savefig(f"{vis_results_dir}/raw_vs_processed_comparison.png", dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    logger.info(f"Comparison plot saved to: {vis_results_dir}/raw_vs_processed_comparison.png")
-    
-    # === Use Best Performing Vectors for Final Analysis ===
-    logger.info("\nSTEP 6: Final Analysis with Best Performing Vectors...")
-    
-    # Determine which performs better overall
-    avg_raw_f1 = np.mean([results_raw[model]['f1_macro'] for model in results_raw.keys()])
-    avg_proc_f1 = np.mean([results_proc[model]['f1_macro'] for model in results_proc.keys()])
-    
-    if avg_proc_f1 > avg_raw_f1:
-        logger.info(f"Processed TF-IDF performs better (avg F1: {avg_proc_f1:.4f} vs {avg_raw_f1:.4f})")
-        vectors_array = X_proc
-        dataframe = dataframe_proc
-        results = results_proc
-        vector_type = "Processed"
-        tfidf_vectorizer = None  # Will be created from the processed data
-    else:
-        logger.info(f"Raw TF-IDF performs better (avg F1: {avg_raw_f1:.4f} vs {avg_proc_f1:.4f})")
-        vectors_array = X_raw
-        dataframe = dataframe_raw
-        results = results_raw
-        vector_type = "Raw"
-        tfidf_vectorizer = None  # Will be created from the raw data
-    
-    logger.info(f"Using {vector_type} TF-IDF vectors for final analysis")
-    
-    logger.info(f"📊 Final vectors shape: {vectors_array.shape}")
-    logger.info(f"📋 Dataframe shape: {dataframe.shape}")
-    logger.info(f"🔢 Number of features: {vectors_array.shape[1]}")
-    logger.info(f"📈 Number of samples: {vectors_array.shape[0]}")
-    
-    # Quick feature check
-    logger.info(f"📊 Vectors shape: {vectors_array.shape}")
-    logger.info(f"✅ Data ready for classification")
+    logger.info(f"💾 Saved full dataset to: {full_csv_filename}")
+    logger.info(f"💾 Saved train split to: {train_csv_filename}")
+    logger.info(f"💾 Saved test split to: {test_csv_filename}")
     
     # === Display Final Results Summary ===
-    logger.info("\nSTEP 7: Final Results Summary...")
+    logger.info("\nSTEP 6: Final Results Summary...")
     
-    # Create summary table for the best performing vectors
+    # Create summary table
     summary_data = []
     for model_name, metrics in results.items():
         summary_data.append({
@@ -668,12 +565,12 @@ if __name__ == "__main__":
     logger.info(f"Best F1-Score (Macro): {best_f1:.4f}")
     logger.info(f"Best Accuracy: {best_accuracy:.4f}")
     logger.info(f"Training Time: {results[best_model]['training_time']:.2f} seconds")
-    logger.info(f"Vector Type Used: {vector_type}")
+    logger.info(f"Vector Type Used: Raw Text TF-IDF")
     
     logger.info("\n" + "="*80)
     logger.info("🎉 TF-IDF CLASSIFICATION PIPELINE COMPLETED SUCCESSFULLY!")
     logger.info("="*80)
     
-    logger.info(f"\nResults saved to: {vis_results_dir}")
-    logger.info(f"Raw vs Processed comparison saved to: {vis_results_dir}")
+    logger.info(f"\nResults saved to: {results_dir}")
+    logger.info(f"TF-IDF data saved to: {results_dir}")
     logger.info(f"Classification results saved to individual model folders")

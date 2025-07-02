@@ -99,7 +99,7 @@ def plot_training_time_comparison(results, results_dir):
                 f'{time_val:.1f}s', ha='center', va='bottom', fontweight='bold')
     
     plt.xticks(rotation=45)
-    plt.tight_layout()
+        plt.tight_layout()
     
     filename = f"{results_dir}/training_time_comparison.png"
     plt.savefig(filename, dpi=300, bbox_inches='tight')
